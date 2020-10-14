@@ -1,12 +1,13 @@
 const modal = document.getElementById('modal');
 const modalShow = document.getElementById('show-modal');
-const modalClose = document.getElementById('close-modal');
+const modalClose = document.getElementById('close-modal', 'close');
+const closeOnSave = document.getElementById('close');
 const bookmarkForm = document.getElementById('bookmark-form');
 const websiteNameEl = document.getElementById('website-name');
 const websiteUrlEl = document.getElementById('website-url');
 const bookmarksContainer = document.getElementById('bookmarks-container');
 
-let bookmarks = [];
+let bookmarks = {};
 
 // Show Modal, Focus on Input
 function showModal () {
@@ -17,6 +18,7 @@ function showModal () {
 // Modal Event Listeners
 modalShow.addEventListener('click', showModal);
 modalClose.addEventListener('click', () => modal.classList.remove('show-modal'));
+closeOnSave.addEventListener('click', () => modal.classList.remove('show-modal'));
 window.addEventListener('click', (e) => (e.target === modal ? modal.classList.remove('show-modal') : false));
 
 // Validate Form
@@ -41,8 +43,8 @@ function buildBookmarks() {
     // Remove all bookmark elements
     bookmarksContainer.textContent = '';
     // Build Items
-    bookmarks.forEach((bookmark) => {
-        const {name, url} = bookmark;
+    Object.keys(bookmarks).forEach((id) => {
+        const {name, url} = bookmarks[id];
         // Item
         const item = document.createElement('div');
         item.classList.add('item');
@@ -76,25 +78,23 @@ function fetchBookmarks() {
     if (localStorage.getItem('bookmarks')) {
             bookmarks = JSON.parse(localStorage.getItem('bookmarks'));
     } else {
-        // Create bookmarks array in localStorage
-        bookmarks = [
-            {
+        // Create bookmarks object in localStorage
+        const id = `https://github.com/WayneMacMavis`
+        bookmarks[id] = {
                 name: 'Wayne Mac Mavis',
-                url: 'https://github.com/WayneMacMavis/',
-            },
-        ];
+                url: 'https://github.com/WayneMacMavis',
+            }
+
         localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
     }
     buildBookmarks();
 }
 
 // Delete Bookmark
-function deleteBookmark(url) {
-    bookmarks.forEach((bookmark, i) => {
-        if (bookmark.url === url) {
-            bookmarks.splice(i, 1);
+function deleteBookmark(id) {
+        if (bookmarks[id]) {
+            delete bookmarks[id]
         }
-    })
     // Update bookmarks array in localStorage, re-populate DOM
     localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
     fetchBookmarks();
@@ -115,7 +115,7 @@ function storeBookmark (e) {
         name: nameValue,
         url: urlValue,
     };
-    bookmarks.push(bookmark);
+    bookmarks[urlValue] = bookmark;
     localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
     fetchBookmarks();
     bookmarkForm.reset();
